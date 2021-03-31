@@ -2,7 +2,7 @@ FROM golang:alpine
 
 WORKDIR /app
 
-COPY ./main.go ./
+COPY ./ ./
 
 RUN go build -o main .
 

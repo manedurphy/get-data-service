@@ -6,51 +6,51 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
+
+	"github.com/manedurphy/reviews-proxy-go/services"
 )
 
-type Review struct {
-	Rating  int    `json:"rating"`
-	Content string `json:"content"`
-	Date    string `json:"date"`
-	User    User   `json:"user"`
-}
+// type Review struct {
+// 	Rating  int    `json:"rating"`
+// 	Content string `json:"content"`
+// 	Date    string `json:"date"`
+// 	User    User   `json:"user"`
+// }
 
-type User struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-}
+// type ReviewInfo struct {
+// 	ReviewCount string `json:"reviewCount"`
+// 	Avg         string `json:"avg"`
+// }
 
-type ReviewsResponse struct {
-	Reviews []Review
-}
+// type User struct {
+// 	FirstName string `json:"first_name"`
+// 	LastName  string `json:"last_name"`
+// }
 
-type Post struct {
-	UserId int    `json:"userId"`
-	Id     int    `json:"id"`
-	Title  string `json:"title"`
-	Body   string `json:"body"`
-}
+// type ReviewsResponse struct {
+// 	Reviews    []Review   `json:"reviews"`
+// 	ReviewInfo ReviewInfo `json:"reviewInfo"`
+// }
 
 type Final struct {
-	Reviews []Review `json:"reviews"`
-	Posts   []Post   `json:"posts"`
+	Reviews    []services.Review   `json:"reviews"`
+	ReviewInfo services.ReviewInfo `json:"reviewInfo"`
 }
 
-var urls []string = []string{"http://localhost:5002/api/reviews/all/1", "https://jsonplaceholder.typicode.com/posts"}
+var urls []string = []string{"http://server:5002/api/reviews/all/"}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	respCh := make(chan *http.Response)
-	var wg sync.WaitGroup
+	id := strings.TrimPrefix(r.URL.Path, "/api/")
 
-	var reviews ReviewsResponse
-	var posts []Post
+	var wg sync.WaitGroup
+	var reviews services.ReviewsResponse
 	var final Final
 
 	mapResponses := make(map[string]interface{})
-
 	mapResponses["reviews"] = &reviews
-	mapResponses["posts"] = &posts
 
 	go func() {
 		wg.Wait()
@@ -59,7 +59,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	for _, url := range urls {
 		wg.Add(1)
-		go GetData(url, respCh, &wg)
+		go GetData(url+id, respCh, &wg)
 	}
 
 	for resp := range mapResponses {
@@ -74,7 +74,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	final.Reviews = reviews.Reviews
-	final.Posts = posts
+	final.ReviewInfo = reviews.ReviewInfo
 
 	finalJson, err := json.Marshal(final)
 
@@ -93,6 +93,6 @@ func GetData(url string, respCh chan<- *http.Response, wg *sync.WaitGroup) {
 }
 
 func main() {
-	http.HandleFunc("/api", handler)
+	http.HandleFunc("/api/", handler)
 	log.Fatal(http.ListenAndServe(":6003", nil))
 }
