@@ -6,50 +6,30 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/manedurphy/reviews-proxy-go/services"
 )
 
-// type Review struct {
-// 	Rating  int    `json:"rating"`
-// 	Content string `json:"content"`
-// 	Date    string `json:"date"`
-// 	User    User   `json:"user"`
-// }
-
-// type ReviewInfo struct {
-// 	ReviewCount string `json:"reviewCount"`
-// 	Avg         string `json:"avg"`
-// }
-
-// type User struct {
-// 	FirstName string `json:"first_name"`
-// 	LastName  string `json:"last_name"`
-// }
-
-// type ReviewsResponse struct {
-// 	Reviews    []Review   `json:"reviews"`
-// 	ReviewInfo ReviewInfo `json:"reviewInfo"`
-// }
-
 type Final struct {
 	Reviews    []services.Review   `json:"reviews"`
 	ReviewInfo services.ReviewInfo `json:"reviewInfo"`
 }
 
-var urls []string = []string{"http://server:5002/api/reviews/all/"}
+var urls []string = []string{os.Getenv("REVIEWS_DOMAIN")}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	respCh := make(chan *http.Response)
+
 	id := strings.TrimPrefix(r.URL.Path, "/api/")
+	mapResponses := make(map[string]interface{})
 
 	var wg sync.WaitGroup
 	var reviews services.ReviewsResponse
 	var final Final
 
-	mapResponses := make(map[string]interface{})
 	mapResponses["reviews"] = &reviews
 
 	go func() {
@@ -59,7 +39,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	for _, url := range urls {
 		wg.Add(1)
-		go GetData(url+id, respCh, &wg)
+		go final.GetData(url+id, respCh, &wg)
 	}
 
 	for resp := range mapResponses {
@@ -86,7 +66,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(finalJson)
 }
 
-func GetData(url string, respCh chan<- *http.Response, wg *sync.WaitGroup) {
+func (f Final) GetData(url string, respCh chan<- *http.Response, wg *sync.WaitGroup) {
 	defer wg.Done()
 	resp, _ := http.Get(url)
 	respCh <- resp
