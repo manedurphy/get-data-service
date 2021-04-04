@@ -14,11 +14,15 @@ import (
 )
 
 type Final struct {
-	Reviews    []services.Review   `json:"reviews"`
-	ReviewInfo services.ReviewInfo `json:"reviewInfo"`
+	Reviews          []services.Review          `json:"reviews"`
+	ReviewInfo       services.ReviewInfo        `json:"reviewInfo"`
+	Origin           services.Origin            `json:"origin"`
+	NearbyWorkspaces []services.NearbyWorkspace `json:"nearbyWorkspaces"`
+	AllWorkspaceInfo services.AllWorkspaceInfo  `json:"allWorkspaceInfo"`
+	Photos           services.Photos            `json:"photos"`
 }
 
-var urls []string = []string{os.Getenv("REVIEWS_DOMAIN")}
+var urls []string = []string{os.Getenv("REVIEWS_DOMAIN"), os.Getenv("NEARBY_DOMAIN")}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	respCh := make(chan *http.Response)
@@ -28,9 +32,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	var wg sync.WaitGroup
 	var reviews services.ReviewsResponse
+	var nearby services.NearbyResponse
 	var final Final
 
 	mapResponses["reviews"] = &reviews
+	mapResponses["nearby"] = &nearby
 
 	go func() {
 		wg.Wait()
@@ -55,6 +61,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	final.Reviews = reviews.Reviews
 	final.ReviewInfo = reviews.ReviewInfo
+	final.Origin = nearby.Origin
+	final.NearbyWorkspaces = nearby.NearbyWorkspaces
+	final.AllWorkspaceInfo = nearby.AllWorkspaceInfo
+	final.Photos = nearby.Photos
 
 	finalJson, err := json.Marshal(final)
 
