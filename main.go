@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/manedurphy/reviews-proxy-go/services"
+	"github.com/manedurphy/get-data-service/services"
 )
 
 type Final struct {

@@ -1,3 +1,3 @@
-module github.com/manedurphy/reviews-proxy-go
+module github.com/manedurphy/get-data-service
 
 go 1.16
