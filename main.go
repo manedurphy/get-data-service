@@ -19,10 +19,20 @@ type Final struct {
 	NearbyWorkspaces []services.NearbyWorkspace `json:"nearbyWorkspaces"`
 }
 
-var urls []string = []string{os.Getenv("REVIEWS_DOMAIN"), os.Getenv("NEARBY_DOMAIN")}
+type URL struct {
+	path string
+	resp string
+}
+
+type Body struct {
+	content []byte
+	resp    string
+}
+
+var urls []URL = []URL{{path: os.Getenv("REVIEWS_DOMAIN"), resp: "reviews"}, {path: os.Getenv("NEARBY_DOMAIN"), resp: "nearby"}}
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	respCh := make(chan *http.Response)
+	bodyCh := make(chan Body)
 
 	id := strings.TrimPrefix(r.URL.Path, "/api/")
 	mapResponses := make(map[string]interface{})
@@ -35,25 +45,32 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	mapResponses["reviews"] = &reviews
 	mapResponses["nearby"] = &nearby
 
-	go func() {
-		wg.Wait()
-		close(respCh)
-	}()
-
 	for _, url := range urls {
 		wg.Add(1)
-		go final.GetData(url+id, respCh, &wg)
+		go func(url URL) {
+			body, err := final.GetData(url.path + id)
+
+			if err != nil {
+				fmt.Println("Error:", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+			b := Body{content: body, resp: url.resp}
+
+			bodyCh <- b
+
+			wg.Done()
+		}(url)
+
 	}
 
-	for resp := range mapResponses {
-		current := <-respCh
+	go func() {
+		wg.Wait()
+		close(bodyCh)
+	}()
 
-		c, _ := ioutil.ReadAll(current.Body)
-		err := json.Unmarshal(c, mapResponses[resp])
-
-		if err != nil {
-			fmt.Println(err)
-		}
+	for b := range bodyCh {
+		json.Unmarshal(b.content, mapResponses[b.resp])
 	}
 
 	final.Reviews = reviews.Reviews
@@ -70,10 +87,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(finalJson)
 }
 
-func (f Final) GetData(url string, respCh chan<- *http.Response, wg *sync.WaitGroup) {
-	defer wg.Done()
-	resp, _ := http.Get(url)
-	respCh <- resp
+func (f Final) GetData(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, e := ioutil.ReadAll(resp.Body)
+
+	if e != nil {
+		fmt.Println("ERROR", e)
+		return nil, e
+	}
+
+	return body, nil
 }
 
 func main() {
