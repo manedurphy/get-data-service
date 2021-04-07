@@ -73,7 +73,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal(b.content, mapResponses[b.resp])
 	}
 
-	final.Reviews = reviews.Reviews
+	if reviews.Reviews != nil {
+		final.Reviews = reviews.Reviews
+
+	} else {
+		final.Reviews = []services.Review{}
+	}
+
 	final.ReviewInfo = reviews.ReviewInfo
 	final.NearbyWorkspaces = nearby.NearbyWorkspaces
 
