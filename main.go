@@ -73,14 +73,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal(b.content, mapResponses[b.resp])
 	}
 
-	if reviews.Reviews != nil {
-		final.Reviews = reviews.Reviews
-
-	} else {
-		final.Reviews = []services.Review{}
-	}
-
-	final.ReviewInfo = reviews.ReviewInfo
+	setReviews(&final, &reviews)
 	final.NearbyWorkspaces = nearby.NearbyWorkspaces
 
 	finalJson, err := json.Marshal(final)
@@ -111,6 +104,17 @@ func (f Final) GetData(url string) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+func setReviews(f *Final, r *services.ReviewsResponse) {
+	if r.Reviews != nil {
+		f.Reviews = r.Reviews
+
+	} else {
+		f.Reviews = []services.Review{}
+	}
+
+	f.ReviewInfo = r.ReviewInfo
 }
 
 func main() {
