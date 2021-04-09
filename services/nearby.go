@@ -5,12 +5,14 @@ type NearbyResponse struct {
 }
 
 type NearbyWorkspace struct {
-	WorkspaceId    int       `json:"workspaceId"`
-	Name           string    `json:"name"`
-	Neighborhood   string    `json:"neighborhood"`
-	Photo          Photo     `json:"photo"`
-	MembershipRate int       `json:"membership_rate"`
-	Amenities      []Amenity `json:"amenities"`
+	WorkspaceId  int    `json:"workspaceId"`
+	Name         string `json:"name"`
+	Neighborhood string `json:"neighborhood"`
+	StreetName   string `json:"streetName"`
+	StreetNumber string `json:"streetNumber"`
+	Photo        Photo  `json:"photo"`
+	Rate         string `json:"rate"`
+	Amenities    string `json:"amenities"`
 }
 
 type Amenity struct {
