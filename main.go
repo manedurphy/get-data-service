@@ -18,6 +18,7 @@ type Final struct {
 	ReviewInfo           services.ReviewInfo        `json:"reviewInfo"`
 	NearbyWorkspaces     []services.NearbyWorkspace `json:"nearbyWorkspaces"`
 	NearbyTransitOptions []services.TransitOption   `json:"nearbyTransitOptions"`
+	Photos               []services.Photo2          `json:"photos"`
 }
 
 type URL struct {
@@ -34,6 +35,7 @@ var urls []URL = []URL{
 	{path: os.Getenv("REVIEWS_DOMAIN"), resp: "reviews"},
 	{path: os.Getenv("NEARBY_DOMAIN"), resp: "nearby"},
 	{path: os.Getenv("LOCATION_DOMAIN"), resp: "transit"},
+	{path: os.Getenv("PHOTOS_DOMAIN"), resp: "photos"},
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -47,12 +49,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var reviews services.ReviewsResponse
 	var nearby services.NearbyResponse
 	var transit services.TransitResponse
+	var photos []services.Photo2
 
 	var final Final
 
 	mapResponses["reviews"] = &reviews
 	mapResponses["nearby"] = &nearby
 	mapResponses["transit"] = &transit
+	mapResponses["photos"] = &photos
 
 	for _, url := range urls {
 		wg.Add(1)
@@ -85,6 +89,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	setReviews(&final, &reviews)
 	final.NearbyWorkspaces = nearby.NearbyWorkspaces
 	final.NearbyTransitOptions = transit.NearbyTransitOptions
+	final.Photos = photos
 
 	finalJson, err := json.Marshal(final)
 
