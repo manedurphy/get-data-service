@@ -91,8 +91,6 @@ func (f Final) GetData(url URL, id string, bodyCh chan<- Body, wg *sync.WaitGrou
 	defer wg.Done()
 	resp, err := http.Get(url.path + id)
 
-	fmt.Println("STATUS", resp.StatusCode)
-
 	if err != nil {
 		fmt.Println("Error 108:", err)
 		return err
