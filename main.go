@@ -60,21 +60,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	for _, url := range urls {
 		wg.Add(1)
-		go func(url URL) {
-			body, err := final.GetData(url.path + id)
-
-			if err != nil {
-				fmt.Println("Error 67:", err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-
-			b := Body{content: body, resp: url.resp}
-
-			bodyCh <- b
-
-			wg.Done()
-		}(url)
-
+		go final.GetData(url, id, bodyCh, &wg)
 	}
 
 	go func() {
@@ -101,24 +87,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(finalJson)
 }
 
-func (f Final) GetData(url string) ([]byte, error) {
-	resp, err := http.Get(url)
+func (f Final) GetData(url URL, id string, bodyCh chan<- Body, wg *sync.WaitGroup) error {
+	defer wg.Done()
+	resp, err := http.Get(url.path + id)
 
 	if err != nil {
 		fmt.Println("Error 108:", err)
-		return nil, err
+		return err
 	}
 
 	defer resp.Body.Close()
 
-	body, e := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 
-	if e != nil {
-		fmt.Println("Error 117:", e)
-		return nil, e
+	if err != nil {
+		fmt.Println("Error 118:", err)
+		return err
 	}
 
-	return body, nil
+	b := Body{content: body, resp: url.resp}
+
+	bodyCh <- b
+	return nil
 }
 
 func setReviews(f *Final, r *services.ReviewsResponse) {
