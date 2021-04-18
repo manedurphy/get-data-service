@@ -64,7 +64,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			body, err := final.GetData(url.path + id)
 
 			if err != nil {
-				fmt.Println("Error:", err)
+				fmt.Println("Error 67:", err)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 
@@ -105,7 +105,7 @@ func (f Final) GetData(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error 108:", err)
 		return nil, err
 	}
 
@@ -114,7 +114,7 @@ func (f Final) GetData(url string) ([]byte, error) {
 	body, e := ioutil.ReadAll(resp.Body)
 
 	if e != nil {
-		fmt.Println("ERROR", e)
+		fmt.Println("Error 117:", e)
 		return nil, e
 	}
 
