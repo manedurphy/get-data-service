@@ -14,11 +14,11 @@ import (
 )
 
 type Final struct {
-	Reviews              []services.Review          `json:"reviews"`
-	ReviewInfo           services.ReviewInfo        `json:"reviewInfo"`
-	NearbyWorkspaces     []services.NearbyWorkspace `json:"nearbyWorkspaces"`
-	NearbyTransitOptions []services.TransitOption   `json:"nearbyTransitOptions"`
-	Photos               []services.Photo2          `json:"photos"`
+	Reviews    []services.Review   `json:"reviews"`
+	ReviewInfo services.ReviewInfo `json:"reviewInfo"`
+	// NearbyWorkspaces     []services.NearbyWorkspace `json:"nearbyWorkspaces"`
+	// NearbyTransitOptions []services.TransitOption   `json:"nearbyTransitOptions"`
+	// Photos               []services.Photo2          `json:"photos"`
 }
 
 type URL struct {
@@ -33,9 +33,9 @@ type Body struct {
 
 var urls []URL = []URL{
 	{path: os.Getenv("REVIEWS_DOMAIN"), resp: "reviews"},
-	{path: os.Getenv("NEARBY_DOMAIN"), resp: "nearby"},
-	{path: os.Getenv("LOCATION_DOMAIN"), resp: "transit"},
-	{path: os.Getenv("PHOTOS_DOMAIN"), resp: "photos"},
+	// {path: os.Getenv("NEARBY_DOMAIN"), resp: "nearby"},
+	// {path: os.Getenv("LOCATION_DOMAIN"), resp: "transit"},
+	// {path: os.Getenv("PHOTOS_DOMAIN"), resp: "photos"},
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -73,9 +73,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	setReviews(&final, &reviews)
-	final.NearbyWorkspaces = nearby.NearbyWorkspaces
-	final.NearbyTransitOptions = transit.NearbyTransitOptions
-	final.Photos = photos
+	// final.NearbyWorkspaces = nearby.NearbyWorkspaces
+	// final.NearbyTransitOptions = transit.NearbyTransitOptions
+	// final.Photos = photos
 
 	finalJson, err := json.Marshal(final)
 
